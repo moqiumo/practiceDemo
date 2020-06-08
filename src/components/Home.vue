@@ -10,8 +10,9 @@
         </el-header>
         <el-container>
             <!-- 侧边栏 -->
-            <el-aside width="200px">
-                <el-menu :default-openeds="['1', '3']" background-color="#333744" text-color="#fff" active-text-color="red" :unique-opened="true">
+            <el-aside :width="toggles ? '64px' : '200px'">
+                <div class="toggle-button" @click="toggleCollapse">|||</div>
+                <el-menu background-color="#333744" text-color="#fff" active-text-color="#409EFF" :unique-opened="true" :collapse="toggles" :collapse-transition="false">
                     <el-submenu :index="item.id + ''" v-for="item in menuList" :key="item.id">
                         <!-- 一级模板区 -->
                         <template slot="title">
@@ -21,13 +22,11 @@
                             <span>{{item.authName}}</span>
                         </template>
                         <!-- 二级菜单 -->
-                         <el-menu-item-group :index="subItem.id + ''" v-for="subItem in item.children" :key="subItem.id">
-                            <template slot="title">
+                         <el-menu-item :index="subItem.id + ''" v-for="subItem in item.children" :key="subItem.id">
                                  <i class="el-icon-menu"></i>
                                  <!-- 文本 -->
                                  <span>{{subItem.authName}}</span>
-                            </template>
-                         </el-menu-item-group>
+                         </el-menu-item>
                     </el-submenu>
                 </el-menu>
             </el-aside>
@@ -49,7 +48,8 @@ export default {
         101: 'iconfont icon-shangpin',
         102: 'iconfont icon-danju',
         145: 'iconfont icon-baobiao'
-      }
+      },
+      toggles: false
     }
   },
   created () {
@@ -66,6 +66,10 @@ export default {
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.menuList = res.data
       console.log(res)
+    },
+    // 切换菜单展开与折叠
+    toggleCollapse () {
+      this.toggles = !this.toggles
     }
   }
 }
@@ -104,5 +108,15 @@ export default {
 }
 .iconfont {
     margin-right: 10px;
+}
+
+.toggle-button {
+    background-color: #333744;
+    font-size: 10px;
+    line-height: 24px;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 0.4em;
+    cursor: pointer;
 }
 </style>
