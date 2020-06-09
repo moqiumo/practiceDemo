@@ -12,7 +12,8 @@
             <!-- 侧边栏 -->
             <el-aside :width="toggles ? '64px' : '200px'">
                 <div class="toggle-button" @click="toggleCollapse">|||</div>
-                <el-menu background-color="#333744" text-color="#fff" active-text-color="#409EFF" :unique-opened="true" :collapse="toggles" :collapse-transition="false">
+                <el-menu background-color="#333744" text-color="#fff" active-text-color="#409EFF" :unique-opened="true" :collapse="toggles"
+                :collapse-transition="false" :router="true" :default-active="activePath">
                     <el-submenu :index="item.id + ''" v-for="item in menuList" :key="item.id">
                         <!-- 一级模板区 -->
                         <template slot="title">
@@ -22,7 +23,7 @@
                             <span>{{item.authName}}</span>
                         </template>
                         <!-- 二级菜单 -->
-                         <el-menu-item :index="subItem.id + ''" v-for="subItem in item.children" :key="subItem.id">
+                         <el-menu-item :index="'/' + subItem.path" v-for="subItem in item.children" :key="subItem.id" @click="saveNavState('/' + subItem.path)">
                                  <i class="el-icon-menu"></i>
                                  <!-- 文本 -->
                                  <span>{{subItem.authName}}</span>
@@ -31,7 +32,9 @@
                 </el-menu>
             </el-aside>
             <!-- 右侧内容区 -->
-            <el-main>Main</el-main>
+            <el-main>
+              <router-view></router-view>
+            </el-main>
         </el-container>
     </el-container>
 </template>
@@ -49,11 +52,14 @@ export default {
         102: 'iconfont icon-danju',
         145: 'iconfont icon-baobiao'
       },
-      toggles: false
+      toggles: false,
+      // 链接地址
+      activePath: ''
     }
   },
   created () {
     this.getMenuList()
+    this.activePath = window.sessionStorage.getItem('activePath')
   },
   methods: {
     logout () {
@@ -70,6 +76,11 @@ export default {
     // 切换菜单展开与折叠
     toggleCollapse () {
       this.toggles = !this.toggles
+    },
+    // 保存跳转的链接
+    saveNavState (activePath) {
+      window.sessionStorage.setItem('activePath', activePath)
+      this.activePath = activePath
     }
   }
 }
