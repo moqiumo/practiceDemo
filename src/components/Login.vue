@@ -25,7 +25,7 @@
 </template>
 <script>
 export default {
-  data () {
+  data  () {
     return {
       loginForm: {
         username: 'admin',
