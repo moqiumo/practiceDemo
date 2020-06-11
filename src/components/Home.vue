@@ -31,7 +31,9 @@
                 </el-menu>
             </el-aside>
             <!-- 右侧内容区 -->
-            <el-main>Main</el-main>
+            <el-main>
+              main
+            </el-main>
         </el-container>
     </el-container>
 </template>
