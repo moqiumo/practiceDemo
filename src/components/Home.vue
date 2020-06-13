@@ -33,7 +33,6 @@
             </el-aside>
             <!-- 右侧内容区 -->
             <el-main>
-              main
               <router-view></router-view>
             </el-main>
         </el-container>
