@@ -175,7 +175,6 @@ export default {
         params: this.queryInfo
       })
       if (res.meta.status !== 200) {
-        console.log(res)
         return this.$message.error('获取用户列表失败!')
       }
       this.userList = res.data.users
