@@ -4,6 +4,7 @@ import router from './router'
 // 导入全局样式
 import './assets/css/global.css'
 import './plugins/element.js'
+import TreeTable from 'vue-table-with-tree-grid'
 // 手动配置Element-ui
 // import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
@@ -21,6 +22,8 @@ Vue.prototype.$http = axios
 
 // Vue.use(ElementUI)
 Vue.config.productionTip = false
+
+Vue.component('tree-table', TreeTable)
 
 new Vue({
   router,
