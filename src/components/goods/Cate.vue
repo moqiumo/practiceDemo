@@ -54,7 +54,7 @@
         <el-dialog
           title="添加分类"
           :visible.sync="addCateDialogvisible"
-          width="40%">
+          width="40%" @close="addCateDialogClosed">
           <!-- 添加分类的表单 -->
           <el-form :model="addCateForm" :rules="addCateFormRules"
           ref="addCateFormRef" label-width="100px">
@@ -73,7 +73,7 @@
           </el-form>
           <span slot="footer" class="dialog-footer">
             <el-button @click="addCateDialogvisible = false">取 消</el-button>
-            <el-button type="primary" @click="addCateDialogvisible = false">确 定</el-button>
+            <el-button type="primary" @click="addCate">确 定</el-button>
           </span>
         </el-dialog>
 
@@ -180,6 +180,36 @@ export default {
     // 选择项变化触发的函数
     parentCateChange() {
       console.log(this.selectedKeys)
+      // 如果selectedKeys数组中的length大于0，说明选中了父级分类
+      // 反之，就没选中任何父级分类
+      if (this.selectedKeys.length > 0) {
+        // 父级分类的id
+        this.addCateForm.cat_pid = this.selectedKeys[this.selectedKeys.length - 1]
+        // 为当前分类的等级赋值
+        this.addCateForm.cat_level = this.selectedKeys.length
+      } else {
+        this.addCateForm.cat_pid = 0
+        this.addCateForm.cat_level = 0
+      }
+    },
+    addCate() {
+      this.$refs.addCateFormRef.validate(async valid => {
+        if (!valid) return
+        const { data: res } = await this.$http.post('categories', this.addCateForm)
+        if (res.meta.status !== 201) {
+          this.$message.error('添加分类失败！')
+        }
+        this.$message.success('添加分类成功！')
+        this.addCateDialogvisible = false
+        this.getCateList()
+      })
+    },
+    // 监听对话框的关闭事件，重置表单的数据
+    addCateDialogClosed() {
+      this.$refs.addCateFormRef.resetFields()
+      this.selectedKeys = []
+      this.addCateForm.cat_level = 0
+      this.addCateForm.cat_pid = 0
     }
   }
 }
