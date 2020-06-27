@@ -71,7 +71,7 @@ export default {
       const { data: res } = await this.$http.get('menus')
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.menuList = res.data
-      console.log(res)
+      // console.log(res)
     },
     // 切换菜单展开与折叠
     toggleCollapse () {
@@ -90,7 +90,7 @@ export default {
     background-color: #373d41;
     display: flex;
     justify-content: space-between;
-    padding: 0;
+    padding: 0 10px 0 0;
     align-items: center;
     color: #fff;
     font-size: 20px;

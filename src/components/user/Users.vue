@@ -209,7 +209,7 @@ export default {
       }
       this.userList = res.data.users
       this.total = res.data.total
-      console.log(res)
+      // console.log(res)
     },
     // 监听改变事件
     handleSizeChange(newSize) {
@@ -223,8 +223,8 @@ export default {
     },
     // 监听switch状态开关的改变
     async userStateChange(userInfo) {
-      console.log(userInfo)
-      console.log(typeof userInfo.id)
+      // console.log(userInfo)
+      // console.log(typeof userInfo.id)
       const { data: res } = await this.$http.put(
         `users/${userInfo.id}/state/${userInfo.mg_state}`
       )
