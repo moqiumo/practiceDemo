@@ -32,14 +32,34 @@
           <!-- 动态参数表格 -->
         <el-table :data="manyTableData" border stripe>
           <!-- 展开行 -->
-          <el-table-column type="expand"></el-table-column>
-          <el-table-column type="index"></el-table-column>
+          <el-table-column type="expand">
+            <template slot-scope="scope">
+              <!-- 循环渲染展开行标签 -->
+              <el-tag v-for="(item, i) in scope.row.attr_vals" :key="i"
+              closable>{{item}}</el-tag>
+              <!-- 输入文本框 -->
+              <el-input
+                class="input-new-tag"
+                v-if="scope.row.inputVisible"
+                v-model="scope.row.inputValue"
+                ref="saveTagInput"
+                size="small"
+                @keyup.enter.native="handleInputConfirm(scope.row)"
+                @blur="handleInputConfirm(scope.row)"
+              >
+              </el-input>
+              <!-- 添加按钮 -->
+              <el-button v-else class="button-new-tag" size="small" @click="showInput(scope.row)">
+                + New Tag</el-button>
+            </template>
+          </el-table-column>
+          <el-table-column type="index" label="#"></el-table-column>
           <el-table-column label="参数名称" prop="attr_name"></el-table-column>
           <el-table-column label="操作">
             <template slot-scope="scope">
               <el-button type="primary" icon="el-icon-edit" size="mini"
               @click="showEditDialog(scope.row.attr_id)">编辑</el-button>
-              <el-button type="danger" icon="el-icon-delete" size="mini">删除</el-button>
+              <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeParams(scope.row.attr_id)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -57,7 +77,7 @@
               <template slot-scope="scope">
                 <el-button type="primary" icon="el-icon-edit" size="mini"
                 @click="showEditDialog(scope.row.attr_id)">编辑</el-button>
-                <el-button type="danger" icon="el-icon-delete" size="mini">删除</el-button>
+                <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeParams(scope.row.attr_id)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -68,7 +88,7 @@
     <!-- 添加动态参数的对话框 -->
     <el-dialog
       :title="'添加'+titleText" :visible.sync="addDialogVisible"
-      width="50%" :before-close="handleClose" @close="addDialogClose">
+      width="50%"  @close="addDialogClose">
       <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="100px">
         <el-form-item :label="titleText" prop="attr_name">
           <el-input v-model="addForm.attr_name"></el-input>
@@ -83,7 +103,7 @@
     <!-- 修改对话框 -->
     <el-dialog
       :title="'修改'+titleText" :visible.sync="editDialogVisible"
-      width="50%" :before-close="handleClose" @close="editDialogClose">
+      width="50%"  @close="editDialogClose">
       <el-form :model="editForm" :rules="editFormRules" ref="editFormRef" label-width="100px">
         <el-form-item :label="titleText" prop="attr_name">
           <el-input v-model="editForm.attr_name"></el-input>
@@ -165,6 +185,15 @@ export default {
       }
       // 根据所选的分类+所处的面板获取数据
       const { data: res } = await this.$http.get(`categories/${this.cateId}/attributes`, { params: { sel: this.activeName } })
+
+      res.data.forEach(item => {
+        item.attr_vals = item.attr_vals ? item.attr_vals.split(',') : []
+
+        // 控制每一行单独的文本框的显示与否
+        item.inputVisible = false
+        item.inputValue = ''
+      })
+      console.log(res.data)
       if (res.meta.status !== 200) {
         return this.$message.error('获取参数失败！')
       }
@@ -223,6 +252,69 @@ export default {
         this.getParamsData()
         this.editDialogVisible = false
       })
+    },
+    // 根据id删除对应的参数项
+    async removeParams(attrId) {
+      // this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+      //   confirmButtonText: '确定',
+      //   cancelButtonText: '取消',
+      //   type: 'warning'
+      // }).then(() => {
+      //   this.$message({
+      //     type: 'success',
+      //     message: '删除成功!'
+      //   })
+      // }).catch(() => {
+      //   this.$message({
+      //     type: 'info',
+      //     message: '已取消删除'
+      //   })
+      // })
+      const comfirmResult = await this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(err => err)
+      if (comfirmResult !== 'confirm') {
+        return this.$message.info('已取消删除!')
+      }
+
+      // 删除的业务逻辑
+      const { data: res } = await this.$http.delete(`categories/${this.cateId}/attributes/${attrId}`)
+      if (res.meta.status !== 200) {
+        return this.$message.error('删除参数失败！')
+      }
+      this.$message.success('删除参数成功！')
+      this.getParamsData()
+    },
+    // 文本框失去焦点或按钮enter触发事件
+    async handleInputConfirm(row) {
+      if (row.inputValue.trim().length === 0) {
+        row.inputValue = ''
+        row.inputVisible = false
+        return
+      }
+      row.attr_vals.push(row.inputValue.trim())
+      row.inputValue = ''
+      row.inputVisible = false
+      const { data: res } = await this.$http.put(`categories/${this.cateId}/attributes/${row.attr_id}`, {
+        attr_name: row.attr_name,
+        attr_sel: row.attr_sel,
+        attr_vals: row.attr_vals.join(',')
+      })
+      if (res.meta.status !== 200) {
+        return this.$message.error('修改参数失败！')
+      }
+      this.$message.success('修改参数成功！')
+    },
+    // 点击按钮，展示文本输入框
+    showInput(row) {
+      row.inputVisible = true
+      // 让文本框自动获得焦点
+      // $nextTick作用：当页面上的元素重新渲染之后才会指定回调函数中的代码
+      this.$nextTick(_ => {
+        this.$refs.saveTagInput.$refs.input.focus()
+      })
     }
   },
   computed: {
@@ -254,5 +346,8 @@ export default {
 <style lang="less" scoped>
 .cat_pot {
   margin: 15px 0;
+}
+.input-new-tag {
+  width: 120px;
 }
 </style>
