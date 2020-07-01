@@ -36,7 +36,7 @@
             <template slot-scope="scope">
               <!-- 循环渲染展开行标签 -->
               <el-tag v-for="(item, i) in scope.row.attr_vals" :key="i"
-              closable>{{item}}</el-tag>
+              closable @close="handleClose(i, scope.row)">{{item}}</el-tag>
               <!-- 输入文本框 -->
               <el-input
                 class="input-new-tag"
@@ -70,7 +70,27 @@
           :disabled="isBtnDisabled" @click="addDialogVisible=true">添加属性</el-button>
           <el-table :data="onlyTableDate" border stripe>
             <!-- 展开行 -->
-            <el-table-column type="expand"></el-table-column>
+            <el-table-column type="expand">
+              <template slot-scope="scope">
+                <!-- 循环渲染展开行标签 -->
+                <el-tag v-for="(item, i) in scope.row.attr_vals" :key="i"
+                closable @close="handleClose(i, scope.row)">{{item}}</el-tag>
+                <!-- 输入文本框 -->
+                <el-input
+                  class="input-new-tag"
+                  v-if="scope.row.inputVisible"
+                  v-model="scope.row.inputValue"
+                  ref="saveTagInput"
+                  size="small"
+                  @keyup.enter.native="handleInputConfirm(scope.row)"
+                  @blur="handleInputConfirm(scope.row)"
+                >
+                </el-input>
+                <!-- 添加按钮 -->
+                <el-button v-else class="button-new-tag" size="small" @click="showInput(scope.row)">
+                  + New Tag</el-button>
+              </template>
+            </el-table-column>
             <el-table-column type="index" label="#"></el-table-column>
             <el-table-column label="属性名称" prop="attr_name"></el-table-column>
             <el-table-column label="操作">
@@ -181,6 +201,8 @@ export default {
     async getParamsData() {
       if (this.selectedCateKeys.length !== 3) {
         this.selectedCateKeys = []
+        this.manyTableData = []
+        this.onlyTableDate = []
         return
       }
       // 根据所选的分类+所处的面板获取数据
@@ -297,15 +319,7 @@ export default {
       row.attr_vals.push(row.inputValue.trim())
       row.inputValue = ''
       row.inputVisible = false
-      const { data: res } = await this.$http.put(`categories/${this.cateId}/attributes/${row.attr_id}`, {
-        attr_name: row.attr_name,
-        attr_sel: row.attr_sel,
-        attr_vals: row.attr_vals.join(',')
-      })
-      if (res.meta.status !== 200) {
-        return this.$message.error('修改参数失败！')
-      }
-      this.$message.success('修改参数成功！')
+      this.saveAttrVals(row)
     },
     // 点击按钮，展示文本输入框
     showInput(row) {
@@ -315,6 +329,23 @@ export default {
       this.$nextTick(_ => {
         this.$refs.saveTagInput.$refs.input.focus()
       })
+    },
+    // 删除对应的参数可选项
+    handleClose(i, row) {
+      row.attr_vals.splice(i, 1)
+      this.saveAttrVals(row)
+    },
+    // 抽取出的公共方法：对attr_vals参数的修改/删除 保存到数据库
+    async saveAttrVals(row) {
+      const { data: res } = await this.$http.put(`categories/${this.cateId}/attributes/${row.attr_id}`, {
+        attr_name: row.attr_name,
+        attr_sel: row.attr_sel,
+        attr_vals: row.attr_vals.join(',')
+      })
+      if (res.meta.status !== 200) {
+        return this.$message.error('修改参数失败！')
+      }
+      this.$message.success('修改参数成功！')
     }
   },
   computed: {
