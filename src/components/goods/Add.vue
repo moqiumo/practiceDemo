@@ -23,7 +23,7 @@
       <el-form :model="addForm" :rules="addFormRules"
       ref="addFormRef" label-width="100px" label-position="top">
         <!-- tab栏区域 -->
-        <el-tabs :tab-position="'left'" v-model="activeIndex">
+        <el-tabs :tab-position="'left'" v-model="activeIndex" :before-leave="beforeTabLeave">
           <el-tab-pane label="基本信息" name="0">
             <el-form-item label="商品名称" prop="goods_name">
               <el-input v-model="addForm.goods_name"></el-input>
@@ -36,6 +36,14 @@
             </el-form-item>
             <el-form-item label="商品数量" prop="goods_number">
               <el-input v-model="addForm.goods_number"></el-input>
+            </el-form-item>
+            <el-form-item label="商品分类" prop="goods_cat">
+             <el-cascader
+              :options="cateList"
+              expand-trigger="hover"
+              :props="cateProps"
+              v-model="addForm.goods_cat"
+              @change="handleChange"></el-cascader>
             </el-form-item>
           </el-tab-pane>
           <el-tab-pane label="商品参数" name="1">
@@ -59,9 +67,11 @@ export default {
       // 添加商品的表单对象
       addForm: {
         goods_name: '',
-        goods_price: '',
-        goods_weight: '',
-        goods_number: ''
+        goods_price: 0,
+        goods_weight: 0,
+        goods_number: 0,
+        // 商品所属的分类数组
+        goods_cat: []
       },
       addFormRules: {
         goods_name: [
@@ -75,9 +85,21 @@ export default {
         ],
         goods_number: [
           { required: true, message: '请输入商品数量', tigger: 'blur' }
+        ],
+        goods_cat: [
+          { required: true, message: '请选择商品分类', trigger: 'blur' }
         ]
       },
-      cateList: []
+      // 商品分类列表
+      cateList: [],
+      cateProps: {
+        // 看到的
+        label: 'cat_name',
+        // 选中的
+        value: 'cat_id',
+        // 父子节点的嵌套
+        children: 'children'
+      }
     }
   },
   created() {
@@ -92,6 +114,21 @@ export default {
       }
       this.cateList = res.data
       console.log(this.cateList)
+    },
+    // 级联选择器，选中项变化，会触发这个函数
+    handleChange() {
+      console.log(this.addForm.goods_cat)
+      if (this.addForm.goods_cat.length !== 3) {
+        this.addForm.goods_cat = []
+      }
+    },
+    beforeTabLeave(activeName, oldActiveName) {
+      // console.log('likai' + oldActiveName)
+      // console.log('jinru' + activeName)
+      if (oldActiveName === '0' && this.addForm.goods_cat.length !== 3) {
+        return this.$message.error('请先选择商品分类！')
+      }
+      return false
     }
   }
 }
