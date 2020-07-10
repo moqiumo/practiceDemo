@@ -5,6 +5,13 @@ import router from './router'
 import './assets/css/global.css'
 import './plugins/element.js'
 import TreeTable from 'vue-table-with-tree-grid'
+
+// 导入富文本编辑器
+import VueQuillEditor from 'vue-quill-editor'
+// 导入对应的富文本编辑器的样式
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css'
 // 手动配置Element-ui
 // import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
@@ -20,6 +27,8 @@ axios.interceptors.request.use(config => {
 })
 Vue.prototype.$http = axios
 
+// 将富文本编辑器，注册为全局可用的组件
+Vue.use(VueQuillEditor)
 // Vue.use(ElementUI)
 Vue.config.productionTip = false
 
